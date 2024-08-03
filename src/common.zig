@@ -2,7 +2,14 @@ const std = @import("std");
 const concept = @import("concept.zig");
 
 pub fn abs(val: anytype) @TypeOf(val) {
-    return if (comptime concept.isFloatingPoint(@TypeOf(val))) @fabs(val) else std.math.absInt(val) catch (comptime std.math.maxInt(@TypeOf(val)));
+    const T = @TypeOf(val);
+    if (comptime concept.isFloatingPoint(@TypeOf(val))) {
+        return @abs(val);
+    } else if (concept.isSignedNumeric(@TypeOf(val))) {
+        return @as(T, @intCast(@abs(val)));
+    } else {
+        return val;
+    }
 }
 
 pub fn sign(val: anytype) @TypeOf(val) {
@@ -46,6 +53,6 @@ pub fn step(edge: anytype, val: @TypeOf(edge)) @TypeOf(edge) {
 }
 
 pub fn smoothstep(edge0: anytype, edge1: @TypeOf(edge0), val: @TypeOf(edge0)) @TypeOf(edge0) {
-    var tmp = @min(@max((val - edge0) / (edge1 - edge0), 0.0), 1.0);
+    const tmp = @min(@max((val - edge0) / (edge1 - edge0), 0.0), 1.0);
     return tmp * tmp * (3.0 - 2.0 * tmp);
 }
